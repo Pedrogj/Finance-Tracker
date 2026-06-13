@@ -120,11 +120,16 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
-    @apply bg-background text-foreground;
-    }
+    @apply min-w-80 bg-background text-foreground antialiased;
+  }
   html {
     @apply font-sans;
-    }
+  }
+  button,
+  a,
+  input {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40;
+  }
 }
