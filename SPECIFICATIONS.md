@@ -21,13 +21,13 @@ Incluye en esta etapa:
 - Sesión persistente administrada por Supabase en el navegador.
 - Confirmación de correo electrónico según la configuración del proyecto.
 - Perfil privado creado automáticamente al registrar un usuario.
-- Dashboard responsive con información financiera demostrativa.
+- Dashboard responsive conectado a información financiera persistente.
+- Registro de ingresos y gastos por cuenta y categoría.
 - Navegación visual hacia futuras áreas de movimientos, presupuestos y metas.
 - Formato de moneda CLP, textos en español y fechas con contexto local.
 
-No incluye recuperación de contraseña, edición de perfil, persistencia de
-movimientos, creación efectiva de operaciones financieras ni cálculos sobre
-datos ingresados por el usuario.
+No incluye recuperación de contraseña, edición de perfil, transferencias entre
+cuentas ni recurrencia automática de movimientos.
 
 ## 3. Stack y estructura
 
@@ -43,6 +43,8 @@ datos ingresados por el usuario.
 
 `AuthProvider` mantiene el usuario y la carga inicial, escucha los cambios de
 sesión de Supabase y expone `signIn`, `signUp` y `signOut` mediante `useAuth`.
+`FinanceProvider` carga y administra cuentas, categorías, movimientos,
+presupuestos y metas mediante `useFinance`.
 `FinanceTrackerApp` consume ese contexto y se limita a controlar las rutas.
 Las páginas residen en `src/pages`; los elementos compartidos y componentes UI
 residen en `src/components`.
@@ -86,6 +88,7 @@ Ruta protegida por el estado de sesión de Supabase. Sin sesión redirige a
 - Distribución de gastos por categoría.
 - Lista de movimientos recientes.
 - Acción visual para agregar un movimiento.
+- Formulario funcional para registrar ingresos y gastos.
 - Cierre de sesión con retorno a `/login`.
 
 Las rutas desconocidas redirigen a `/login`. Si ya existe una sesión, visitar
@@ -112,26 +115,34 @@ login o registro redirige al dashboard.
 - Las páginas no acceden directamente al cliente Supabase ni reciben la sesión
   por props; consumen el estado compartido mediante `useAuth`.
 
-## 8. Datos demostrativos
+## 8. Modelo financiero
 
-Los datos mock representan junio de 2026 e incluyen:
+- `accounts`: cuentas de efectivo, corriente, ahorro, crédito o inversión.
+- `categories`: categorías independientes de ingreso y gasto.
+- `transactions`: movimientos positivos vinculados a una cuenta y categoría;
+  el tipo determina si suman o restan al balance.
+- `budgets`: límites mensuales por categoría.
+- `savings_goals`: metas con monto objetivo, progreso, fecha y estado.
+- Cada usuario recibe una cuenta principal y categorías base al registrarse.
+- Las relaciones compuestas impiden asociar datos pertenecientes a usuarios
+  diferentes.
+- Las claves compuestas también garantizan que ingresos, gastos y presupuestos
+  solo utilicen categorías del tipo correspondiente.
+- Todas las tablas tienen RLS para SELECT, INSERT, UPDATE y DELETE, limitado a
+  `auth.uid()`.
+- Los importes se almacenan como `numeric(14,2)` y se presentan en CLP.
 
-- Balance disponible: `$1.284.500`.
-- Ingresos: `$1.850.000`.
-- Gastos: `$565.500`.
-- Presupuesto mensual: `$900.000`.
-- Categorías: vivienda, alimentación, transporte y otros.
-- Meta de fondo de emergencia por `$3.000.000`.
-- Movimientos de ejemplo con comercio, categoría, fecha e importe.
-
-Los importes se formatean con `Intl.NumberFormat`, locale `es-CL` y moneda
-`CLP`, sin decimales.
+El dashboard calcula balance, ingresos, gastos y distribución por categorías
+desde los movimientos reales del usuario. Los presupuestos y metas muestran
+estados vacíos hasta que el usuario los configure.
 
 ## 9. Evolución futura
 
 - Recuperación y cambio de contraseña.
-- Persistencia de perfil, cuentas, categorías y movimientos.
-- CRUD de ingresos, gastos, presupuestos y metas.
+- Gestión visual de cuentas y categorías.
+- CRUD completo de presupuestos y metas.
+- Edición y eliminación de movimientos.
+- Transferencias entre cuentas y movimientos recurrentes.
 - Filtros, búsqueda y selección de periodos.
 - Gráficos basados en información real.
 - Preferencias de moneda, localización y tema.
@@ -149,4 +160,6 @@ Los importes se formatean con `Intl.NumberFormat`, locale `es-CL` y moneda
 - Las rutas no reconocidas se controlan mediante redirección.
 - No existe desbordamiento horizontal en móvil, tablet o escritorio.
 - La interfaz utiliza español y muestra importes en CLP.
+- Un usuario no puede consultar ni modificar información financiera ajena.
+- Registrar un movimiento actualiza el resumen y la lista reciente.
 - `npm run lint` y `npm run build` finalizan correctamente.
