@@ -92,14 +92,11 @@ function TransactionForm({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-            Registro financiero
-          </p>
           <h2
             id="transaction-title"
-            className="mt-1 text-xl font-semibold text-slate-950"
+            className="text-xl font-semibold text-slate-950"
           >
-            Nuevo movimiento
+            Registrar movimiento
           </h2>
         </div>
         <button
@@ -178,7 +175,9 @@ function TransactionForm({
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        {accounts.length === 1 ? (
+          <input type="hidden" {...register("accountId")} />
+        ) : (
           <label className="block text-sm font-medium text-slate-700">
             Cuenta
             <select
@@ -194,33 +193,25 @@ function TransactionForm({
             </select>
             <FieldError message={errors.accountId?.message} />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
-            Categoría
-            <select
-              className={`${fieldClass} mt-2`}
-              aria-invalid={Boolean(errors.categoryId)}
-              {...register("categoryId")}
-            >
-              {filteredCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.categoryId?.message} />
-          </label>
-        </div>
+        )}
 
         <label className="block text-sm font-medium text-slate-700">
-          Notas <span className="font-normal text-slate-400">(opcional)</span>
-          <textarea
-            className="mt-2 min-h-20 w-full resize-none rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-100"
-            maxLength={1000}
-            aria-invalid={Boolean(errors.notes)}
-            {...register("notes")}
-          />
-          <FieldError message={errors.notes?.message} />
+          Categoría
+          <select
+            className={`${fieldClass} mt-2`}
+            aria-invalid={Boolean(errors.categoryId)}
+            {...register("categoryId")}
+          >
+            {filteredCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <FieldError message={errors.categoryId?.message} />
         </label>
+
+        <input type="hidden" {...register("notes")} />
 
         {errors.root?.server?.message && (
           <p
@@ -231,15 +222,12 @@ function TransactionForm({
           </p>
         )}
 
-        <div className="flex justify-end gap-3 pt-2">
-          <Button type="button" variant="outline" size="lg" onClick={onClose}>
-            Cancelar
-          </Button>
+        <div className="flex justify-end pt-2">
           <Button
             type="submit"
             size="lg"
             disabled={isSubmitting || accounts.length === 0}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="w-full bg-emerald-600 hover:bg-emerald-700"
           >
             {isSubmitting ? "Guardando..." : "Guardar movimiento"}
           </Button>

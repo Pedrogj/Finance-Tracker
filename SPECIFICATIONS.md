@@ -54,14 +54,15 @@ residen en `src/components`.
 ## 4. Identidad visual
 
 - Apariencia fintech clara, profesional y cercana.
+- La interfaz prioriza saldo, registro de movimientos y actividad reciente.
+- No se muestran controles sin funcionalidad ni secciones vacías opcionales.
 - Verde esmeralda como color primario para acciones, progreso y estados
   positivos.
 - Slate para superficies, tipografía y navegación.
 - Tarjetas blancas, bordes suaves, radios amplios y sombras discretas.
 - La interfaz debe conservar contraste suficiente y estados de foco visibles.
-- Escritorio: sidebar fija y contenido organizado en columnas.
-- Tablet y móvil: menú lateral desplegable, tarjetas apiladas y controles sin
-  desbordamiento horizontal.
+- Navegación superior mínima con identidad, usuario y cierre de sesión.
+- Tablet y móvil: contenido apilado y acción principal a ancho completo.
 
 ## 5. Pantallas y rutas
 
@@ -82,12 +83,9 @@ revisar su bandeja; si Supabase entrega una sesión inmediata, navega a `/`.
 Ruta protegida por el estado de sesión de Supabase. Sin sesión redirige a
 `/login`. Presenta:
 
-- Sidebar con resumen, movimientos, presupuestos, metas y configuración.
-- Encabezado con periodo, notificaciones y usuario.
+- Encabezado mínimo con identidad, usuario y cierre de sesión.
 - Balance disponible, ingresos y gastos mensuales.
-- Progreso del presupuesto mensual.
-- Meta de ahorro destacada.
-- Distribución de gastos por categoría.
+- Presupuesto, meta y distribución por categoría solo cuando contienen datos.
 - Lista de movimientos recientes.
 - Acción visual para agregar un movimiento.
 - Formulario funcional para registrar ingresos y gastos.
