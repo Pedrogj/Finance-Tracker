@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
@@ -6,10 +8,10 @@ import { AuthShell } from "@/components/AuthShell";
 import { FormField } from "@/components/FormField";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-
-type LoginErrors = Partial<Record<"email" | "password", string>>;
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  loginSchema,
+  type LoginFormValues,
+} from "@/schemas/auth";
 
 function getLoginError(message: string) {
   if (message.includes("Invalid login credentials")) {
@@ -24,39 +26,27 @@ function getLoginError(message: string) {
 export function LoginPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<LoginErrors>({});
-  const [formError, setFormError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setFormError("");
-    const nextErrors: LoginErrors = {};
-
-    if (!email.trim()) {
-      nextErrors.email = "Ingresa tu correo electrónico.";
-    } else if (!emailPattern.test(email)) {
-      nextErrors.email = "Ingresa un correo electrónico válido.";
-    }
-
-    if (!password) {
-      nextErrors.password = "Ingresa tu contraseña.";
-    } else if (password.length < 6) {
-      nextErrors.password = "La contraseña debe tener al menos 6 caracteres.";
-    }
-
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    setIsSubmitting(true);
-    const error = await signIn(email.trim(), password);
-    setIsSubmitting(false);
+  async function onSubmit(values: LoginFormValues) {
+    const error = await signIn(values.email, values.password);
 
     if (error) {
-      setFormError(getLoginError(error.message));
+      setError("root.server", {
+        message: getLoginError(error.message),
+      });
       return;
     }
 
@@ -69,16 +59,19 @@ export function LoginPage() {
       title="Inicia sesión"
       description="Accede a tu panorama financiero y continúa organizando tu presupuesto."
     >
-      <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+      <form
+        className="space-y-5"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <FormField
           id="email"
           label="Correo electrónico"
           type="email"
           autoComplete="email"
           placeholder="nombre@correo.cl"
-          value={email}
-          error={errors.email}
-          onChange={(event) => setEmail(event.target.value)}
+          error={errors.email?.message}
+          {...register("email")}
         />
 
         <div>
@@ -89,10 +82,9 @@ export function LoginPage() {
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="Mínimo 6 caracteres"
-              value={password}
-              error={errors.password}
+              error={errors.password?.message}
               className="pr-11"
-              onChange={(event) => setPassword(event.target.value)}
+              {...register("password")}
             />
             <button
               type="button"
@@ -117,12 +109,12 @@ export function LoginPage() {
           </div>
         </div>
 
-        {formError && (
+        {errors.root?.server?.message && (
           <p
             role="alert"
             className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
           >
-            {formError}
+            {errors.root.server.message}
           </p>
         )}
 

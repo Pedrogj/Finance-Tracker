@@ -36,6 +36,8 @@ cuentas ni recurrencia automática de movimientos.
 - React Router para las rutas del cliente.
 - Supabase Auth y PostgreSQL para autenticación y perfil.
 - React Context API para centralizar el estado y las operaciones de autenticación.
+- React Hook Form para estado, envío y errores de formularios.
+- Zod como fuente única de validación y tipos de entrada.
 - Tailwind CSS 4 para estilos responsive.
 - Componentes shadcn y Radix UI como base de interfaz.
 - Lucide React para iconografía.
@@ -96,6 +98,8 @@ login o registro redirige al dashboard.
 
 ## 6. Validación
 
+- Los formularios usan `useForm` con `zodResolver`.
+- Los tipos de cada formulario se infieren desde su esquema Zod.
 - Todos los campos de los formularios son obligatorios.
 - El correo debe tener un formato válido.
 - La contraseña debe tener al menos seis caracteres.
@@ -103,6 +107,8 @@ login o registro redirige al dashboard.
 - Los errores aparecen junto al campo y se relacionan mediante atributos ARIA.
 - Los errores de Supabase se presentan mediante mensajes en español sin exponer
   detalles internos.
+- Los errores remotos se registran en `root.server`; los errores de campo
+  provienen exclusivamente de Zod.
 
 ## 7. Autenticación y perfil
 

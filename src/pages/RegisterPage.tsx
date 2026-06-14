@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
@@ -6,12 +8,10 @@ import { AuthShell } from "@/components/AuthShell";
 import { FormField } from "@/components/FormField";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-
-type RegisterErrors = Partial<
-  Record<"name" | "email" | "password" | "confirmation", string>
->;
-
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  registerSchema,
+  type RegisterFormValues,
+} from "@/schemas/auth";
 
 function getRegisterError(message: string) {
   if (message.includes("already registered")) {
@@ -26,54 +26,34 @@ function getRegisterError(message: string) {
 export function RegisterPage() {
   const navigate = useNavigate();
   const { signUp } = useAuth();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmation, setConfirmation] = useState("");
-  const [errors, setErrors] = useState<RegisterErrors>({});
-  const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmation: "",
+    },
+  });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setFormError("");
+  async function onSubmit(values: RegisterFormValues) {
     setSuccessMessage("");
-    const nextErrors: RegisterErrors = {};
-
-    if (!name.trim()) nextErrors.name = "Ingresa tu nombre.";
-
-    if (!email.trim()) {
-      nextErrors.email = "Ingresa tu correo electrónico.";
-    } else if (!emailPattern.test(email)) {
-      nextErrors.email = "Ingresa un correo electrónico válido.";
-    }
-
-    if (!password) {
-      nextErrors.password = "Crea una contraseña.";
-    } else if (password.length < 6) {
-      nextErrors.password = "La contraseña debe tener al menos 6 caracteres.";
-    }
-
-    if (!confirmation) {
-      nextErrors.confirmation = "Confirma tu contraseña.";
-    } else if (confirmation !== password) {
-      nextErrors.confirmation = "Las contraseñas no coinciden.";
-    }
-
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
-
-    setIsSubmitting(true);
     const { error, requiresEmailConfirmation } = await signUp(
-      name.trim(),
-      email.trim(),
-      password,
+      values.name,
+      values.email,
+      values.password,
     );
-    setIsSubmitting(false);
 
     if (error) {
-      setFormError(getRegisterError(error.message));
+      setError("root.server", {
+        message: getRegisterError(error.message),
+      });
       return;
     }
 
@@ -93,15 +73,18 @@ export function RegisterPage() {
       title="Crea tu cuenta"
       description="Configura tu espacio personal y empieza a construir mejores hábitos financieros."
     >
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <form
+        className="space-y-4"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <FormField
           id="name"
           label="Nombre completo"
           autoComplete="name"
           placeholder="Tu nombre"
-          value={name}
-          error={errors.name}
-          onChange={(event) => setName(event.target.value)}
+          error={errors.name?.message}
+          {...register("name")}
         />
         <FormField
           id="register-email"
@@ -109,9 +92,8 @@ export function RegisterPage() {
           type="email"
           autoComplete="email"
           placeholder="nombre@correo.cl"
-          value={email}
-          error={errors.email}
-          onChange={(event) => setEmail(event.target.value)}
+          error={errors.email?.message}
+          {...register("email")}
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
@@ -120,9 +102,8 @@ export function RegisterPage() {
             type="password"
             autoComplete="new-password"
             placeholder="Mínimo 6 caracteres"
-            value={password}
-            error={errors.password}
-            onChange={(event) => setPassword(event.target.value)}
+            error={errors.password?.message}
+            {...register("password")}
           />
           <FormField
             id="confirmation"
@@ -130,9 +111,8 @@ export function RegisterPage() {
             type="password"
             autoComplete="new-password"
             placeholder="Repite tu contraseña"
-            value={confirmation}
-            error={errors.confirmation}
-            onChange={(event) => setConfirmation(event.target.value)}
+            error={errors.confirmation?.message}
+            {...register("confirmation")}
           />
         </div>
 
@@ -141,12 +121,12 @@ export function RegisterPage() {
           privacidad de Finance Tracker.
         </p>
 
-        {formError && (
+        {errors.root?.server?.message && (
           <p
             role="alert"
             className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
           >
-            {formError}
+            {errors.root.server.message}
           </p>
         )}
 
