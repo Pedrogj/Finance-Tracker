@@ -8,18 +8,29 @@ import {
   transactionSchema,
   type TransactionFormValues,
 } from "@/schemas/finance";
-import type { Account, Category, NewTransaction } from "@/types/finance";
+import type {
+  Account,
+  Category,
+  FinanceTransaction,
+  NewTransaction,
+} from "@/types/finance";
 
 type TransactionModalProps = {
   open: boolean;
   onClose: () => void;
+  transaction?: FinanceTransaction | null;
 };
 
 type TransactionFormProps = {
   accounts: Account[];
   categories: Category[];
   createTransaction: (transaction: NewTransaction) => Promise<string | null>;
+  updateTransaction: (
+    transactionId: number,
+    transaction: NewTransaction,
+  ) => Promise<string | null>;
   onClose: () => void;
+  transaction?: FinanceTransaction | null;
 };
 
 const fieldClass =
@@ -34,7 +45,9 @@ function TransactionForm({
   accounts,
   categories,
   createTransaction,
+  updateTransaction,
   onClose,
+  transaction,
 }: TransactionFormProps) {
   const expenseCategories = categories.filter(
     (category) => category.category_type === "expense",
@@ -49,13 +62,17 @@ function TransactionForm({
   } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
-      type: "expense",
-      accountId: String(accounts[0]?.id ?? ""),
-      categoryId: String(expenseCategories[0]?.id ?? ""),
-      amount: 0,
-      description: "",
-      date: new Date().toISOString().slice(0, 10),
-      notes: "",
+      type: transaction?.transaction_type ?? "expense",
+      accountId: String(transaction?.account_id ?? accounts[0]?.id ?? ""),
+      categoryId: String(
+        transaction?.category_id ?? expenseCategories[0]?.id ?? "",
+      ),
+      amount: transaction ? Number(transaction.amount) : 0,
+      description: transaction?.description ?? "",
+      date:
+        transaction?.transaction_date ??
+        new Date().toISOString().slice(0, 10),
+      notes: transaction?.notes ?? "",
     },
   });
 
@@ -65,7 +82,7 @@ function TransactionForm({
   );
 
   async function onSubmit(values: TransactionFormValues) {
-    const submitError = await createTransaction({
+    const payload: NewTransaction = {
       accountId: Number(values.accountId),
       categoryId: Number(values.categoryId),
       type: values.type,
@@ -73,7 +90,10 @@ function TransactionForm({
       description: values.description,
       notes: values.notes,
       date: values.date,
-    });
+    };
+    const submitError = transaction
+      ? await updateTransaction(transaction.id, payload)
+      : await createTransaction(payload);
 
     if (submitError) {
       setError("root.server", { message: submitError });
@@ -96,7 +116,7 @@ function TransactionForm({
             id="transaction-title"
             className="text-xl font-semibold text-slate-950"
           >
-            Registrar movimiento
+            {transaction ? "Editar movimiento" : "Registrar movimiento"}
           </h2>
         </div>
         <button
@@ -229,7 +249,11 @@ function TransactionForm({
             disabled={isSubmitting || accounts.length === 0}
             className="w-full bg-emerald-600 hover:bg-emerald-700"
           >
-            {isSubmitting ? "Guardando..." : "Guardar movimiento"}
+            {isSubmitting
+              ? "Guardando..."
+              : transaction
+                ? "Guardar cambios"
+                : "Guardar movimiento"}
           </Button>
         </div>
       </form>
@@ -237,8 +261,13 @@ function TransactionForm({
   );
 }
 
-export function TransactionModal({ open, onClose }: TransactionModalProps) {
-  const { accounts, categories, createTransaction } = useFinance();
+export function TransactionModal({
+  open,
+  onClose,
+  transaction,
+}: TransactionModalProps) {
+  const { accounts, categories, createTransaction, updateTransaction } =
+    useFinance();
 
   if (!open) return null;
 
@@ -248,10 +277,13 @@ export function TransactionModal({ open, onClose }: TransactionModalProps) {
       role="presentation"
     >
       <TransactionForm
+        key={transaction?.id ?? "new"}
         accounts={accounts}
         categories={categories}
         createTransaction={createTransaction}
+        updateTransaction={updateTransaction}
         onClose={onClose}
+        transaction={transaction}
       />
     </div>
   );

@@ -22,7 +22,8 @@ Incluye en esta etapa:
 - Confirmación de correo electrónico según la configuración del proyecto.
 - Perfil privado creado automáticamente al registrar un usuario.
 - Dashboard responsive conectado a información financiera persistente.
-- Registro de ingresos y gastos por cuenta y categoría.
+- Registro, edición y eliminación de ingresos y gastos por cuenta y categoría.
+- Creación y eliminación de categorías personales de ingreso y gasto.
 - Navegación visual hacia futuras áreas de movimientos, presupuestos y metas.
 - Formato de moneda CLP, textos en español y fechas con contexto local.
 
@@ -88,7 +89,10 @@ Ruta protegida por el estado de sesión de Supabase. Sin sesión redirige a
 - Presupuesto, meta y distribución por categoría solo cuando contienen datos.
 - Lista de movimientos recientes.
 - Acción visual para agregar un movimiento.
-- Formulario funcional para registrar ingresos y gastos.
+- Administrador de categorías con nombre, tipo, color y eliminación confirmada.
+- Formulario funcional para registrar y editar ingresos y gastos.
+- Acciones compactas para editar o eliminar cada movimiento.
+- Confirmación obligatoria antes de eliminar un movimiento.
 - Cierre de sesión con retorno a `/login`.
 
 Las rutas desconocidas redirigen a `/login`. Si ya existe una sesión, visitar
@@ -143,9 +147,8 @@ estados vacíos hasta que el usuario los configure.
 ## 9. Evolución futura
 
 - Recuperación y cambio de contraseña.
-- Gestión visual de cuentas y categorías.
+- Gestión visual de cuentas y edición de categorías.
 - CRUD completo de presupuestos y metas.
-- Edición y eliminación de movimientos.
 - Transferencias entre cuentas y movimientos recurrentes.
 - Filtros, búsqueda y selección de periodos.
 - Gráficos basados en información real.
@@ -165,5 +168,8 @@ estados vacíos hasta que el usuario los configure.
 - No existe desbordamiento horizontal en móvil, tablet o escritorio.
 - La interfaz utiliza español y muestra importes en CLP.
 - Un usuario no puede consultar ni modificar información financiera ajena.
-- Registrar un movimiento actualiza el resumen y la lista reciente.
+- Registrar, editar o eliminar un movimiento actualiza el resumen y la lista
+  reciente.
+- Crear una categoría la incorpora a los formularios de movimientos.
+- Una categoría con movimientos asociados no puede eliminarse.
 - `npm run lint` y `npm run build` finalizan correctamente.

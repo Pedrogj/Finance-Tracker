@@ -55,3 +55,9 @@ export type NewTransaction = {
   notes?: string;
   date: string;
 };
+
+export type NewCategory = {
+  name: string;
+  type: TransactionType;
+  color: string;
+};

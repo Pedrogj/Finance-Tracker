@@ -20,3 +20,17 @@ export const transactionSchema = z.object({
 });
 
 export type TransactionFormValues = z.infer<typeof transactionSchema>;
+
+export const categorySchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Ingresa un nombre.")
+    .max(60, "El nombre no puede superar los 60 caracteres."),
+  type: z.enum(["expense", "income"]),
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "Selecciona un color válido."),
+});
+
+export type CategoryFormValues = z.infer<typeof categorySchema>;

@@ -115,6 +115,60 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
       isLoading,
       error,
       refresh,
+      async createCategory(category) {
+        const duplicate = categories.some(
+          (currentCategory) =>
+            currentCategory.category_type === category.type &&
+            currentCategory.name.trim().toLocaleLowerCase("es-CL") ===
+              category.name.trim().toLocaleLowerCase("es-CL"),
+        );
+
+        if (duplicate) {
+          return "Ya existe una categoría de este tipo con el mismo nombre.";
+        }
+
+        const { error: insertError } = await supabase
+          .from("categories")
+          .insert({
+            name: category.name.trim(),
+            category_type: category.type,
+            color: category.color,
+            icon:
+              category.type === "income"
+                ? "circle-dollar-sign"
+                : "receipt-text",
+          });
+
+        if (insertError) {
+          return "No pudimos crear la categoría. Inténtalo nuevamente.";
+        }
+
+        await refresh();
+        return null;
+      },
+      async deleteCategory(categoryId) {
+        const { data, error: deleteError } = await supabase
+          .from("categories")
+          .delete()
+          .eq("id", categoryId)
+          .select("id")
+          .maybeSingle();
+
+        if (deleteError?.code === "23503") {
+          return "Esta categoría tiene movimientos asociados y no se puede eliminar.";
+        }
+
+        if (deleteError) {
+          return "No pudimos eliminar la categoría. Inténtalo nuevamente.";
+        }
+
+        if (!data) {
+          return "No encontramos la categoría o no tienes permiso para eliminarla.";
+        }
+
+        await refresh();
+        return null;
+      },
       async createTransaction(transaction) {
         const { error: insertError } = await supabase
           .from("transactions")
@@ -130,6 +184,52 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
         if (insertError) {
           return "No pudimos guardar el movimiento. Revisa los datos e inténtalo nuevamente.";
+        }
+
+        await refresh();
+        return null;
+      },
+      async updateTransaction(transactionId, transaction) {
+        const { data, error: updateError } = await supabase
+          .from("transactions")
+          .update({
+            account_id: transaction.accountId,
+            category_id: transaction.categoryId,
+            transaction_type: transaction.type,
+            amount: transaction.amount,
+            description: transaction.description,
+            notes: transaction.notes || null,
+            transaction_date: transaction.date,
+          })
+          .eq("id", transactionId)
+          .select("id")
+          .maybeSingle();
+
+        if (updateError) {
+          return "No pudimos actualizar el movimiento. Inténtalo nuevamente.";
+        }
+
+        if (!data) {
+          return "No encontramos el movimiento o no tienes permiso para editarlo.";
+        }
+
+        await refresh();
+        return null;
+      },
+      async deleteTransaction(transactionId) {
+        const { data, error: deleteError } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("id", transactionId)
+          .select("id")
+          .maybeSingle();
+
+        if (deleteError) {
+          return "No pudimos eliminar el movimiento. Inténtalo nuevamente.";
+        }
+
+        if (!data) {
+          return "No encontramos el movimiento o no tienes permiso para eliminarlo.";
         }
 
         await refresh();

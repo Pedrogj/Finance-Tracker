@@ -3,17 +3,23 @@ import {
   ArrowUpRight,
   CircleDollarSign,
   LogOut,
+  Pencil,
   Plus,
   ReceiptText,
+  Tags,
   Target,
+  Trash2,
   WalletCards,
 } from "lucide-react";
 import { useState } from "react";
 
+import { DeleteTransactionDialog } from "@/components/DeleteTransactionDialog";
+import { CategoryManagerModal } from "@/components/CategoryManagerModal";
 import { TransactionModal } from "@/components/TransactionModal";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinance } from "@/hooks/useFinance";
+import type { FinanceTransaction } from "@/types/finance";
 
 const currency = new Intl.NumberFormat("es-CL", {
   style: "currency",
@@ -38,6 +44,11 @@ export function DashboardPage() {
   const { accounts, transactions, budgets, goals, isLoading, error } =
     useFinance();
   const [transactionModalOpen, setTransactionModalOpen] = useState(false);
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<FinanceTransaction | null>(null);
+  const [deletingTransaction, setDeletingTransaction] =
+    useState<FinanceTransaction | null>(null);
 
   if (!user) return null;
 
@@ -154,14 +165,28 @@ export function DashboardPage() {
               Tu resumen de {currentMonthLabel}
             </p>
           </div>
-          <Button
-            size="lg"
-            onClick={() => setTransactionModalOpen(true)}
-            className="h-11 rounded-xl bg-emerald-600 px-4 hover:bg-emerald-700"
-          >
-            <Plus data-icon="inline-start" />
-            Registrar movimiento
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => setCategoryManagerOpen(true)}
+              className="h-11 rounded-xl px-4"
+            >
+              <Tags data-icon="inline-start" />
+              Categorías
+            </Button>
+            <Button
+              size="lg"
+              onClick={() => {
+                setEditingTransaction(null);
+                setTransactionModalOpen(true);
+              }}
+              className="h-11 rounded-xl bg-emerald-600 px-4 hover:bg-emerald-700"
+            >
+              <Plus data-icon="inline-start" />
+              Registrar movimiento
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -257,14 +282,39 @@ export function DashboardPage() {
                             )}
                           </p>
                         </div>
-                        <p
-                          className={`whitespace-nowrap text-sm font-semibold ${
-                            positive ? "text-emerald-700" : "text-slate-900"
-                          }`}
-                        >
-                          {positive ? "+" : "-"}
-                          {currency.format(Number(transaction.amount))}
-                        </p>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <p
+                            className={`whitespace-nowrap text-sm font-semibold ${
+                              positive ? "text-emerald-700" : "text-slate-900"
+                            }`}
+                          >
+                            {positive ? "+" : "-"}
+                            {currency.format(Number(transaction.amount))}
+                          </p>
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingTransaction(transaction);
+                                setTransactionModalOpen(true);
+                              }}
+                              className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                              aria-label={`Editar ${transaction.description}`}
+                            >
+                              <Pencil className="size-4" aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDeletingTransaction(transaction)
+                              }
+                              className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"
+                              aria-label={`Eliminar ${transaction.description}`}
+                            >
+                              <Trash2 className="size-4" aria-hidden="true" />
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
@@ -357,7 +407,21 @@ export function DashboardPage() {
 
       <TransactionModal
         open={transactionModalOpen}
-        onClose={() => setTransactionModalOpen(false)}
+        onClose={() => {
+          setTransactionModalOpen(false);
+          setEditingTransaction(null);
+        }}
+        transaction={editingTransaction}
+      />
+      <CategoryManagerModal
+        key={categoryManagerOpen ? "open" : "closed"}
+        open={categoryManagerOpen}
+        onClose={() => setCategoryManagerOpen(false)}
+      />
+      <DeleteTransactionDialog
+        key={deletingTransaction?.id ?? "closed"}
+        transaction={deletingTransaction}
+        onClose={() => setDeletingTransaction(null)}
       />
     </div>
   );
