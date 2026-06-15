@@ -24,6 +24,8 @@ Incluye en esta etapa:
 - Dashboard responsive conectado a información financiera persistente.
 - Registro, edición y eliminación de ingresos y gastos por cuenta y categoría.
 - Creación y eliminación de categorías personales de ingreso y gasto.
+- Navegación mensual para consultar el historial financiero.
+- Filtro por rango de días dentro del mes seleccionado.
 - Navegación visual hacia futuras áreas de movimientos, presupuestos y metas.
 - Formato de moneda CLP, textos en español y fechas con contexto local.
 
@@ -86,6 +88,9 @@ Ruta protegida por el estado de sesión de Supabase. Sin sesión redirige a
 
 - Encabezado mínimo con identidad, usuario y cierre de sesión.
 - Balance disponible, ingresos y gastos mensuales.
+- Selector de mes con navegación desde el primer período disponible hasta el
+  mes actual.
+- Calendario shadcn para seleccionar un rango limitado al mes visible.
 - Presupuesto, meta y distribución por categoría solo cuando contienen datos.
 - Lista de movimientos recientes.
 - Acción visual para agregar un movimiento.
@@ -144,13 +149,21 @@ El dashboard calcula balance, ingresos, gastos y distribución por categorías
 desde los movimientos reales del usuario. Los presupuestos y metas muestran
 estados vacíos hasta que el usuario los configure.
 
+Al seleccionar un mes, el dashboard muestra los ingresos, gastos, categorías,
+presupuesto y movimientos de ese período. El saldo corresponde al acumulado
+hasta el cierre del mes seleccionado.
+
+El usuario puede acotar la consulta a un rango de días. Los ingresos, gastos,
+categorías y movimientos respetan ambas fechas; el saldo se calcula acumulado
+hasta el día final del rango.
+
 ## 9. Evolución futura
 
 - Recuperación y cambio de contraseña.
 - Gestión visual de cuentas y edición de categorías.
 - CRUD completo de presupuestos y metas.
 - Transferencias entre cuentas y movimientos recurrentes.
-- Filtros, búsqueda y selección de periodos.
+- Filtros y búsqueda de movimientos.
 - Gráficos basados en información real.
 - Preferencias de moneda, localización y tema.
 - Pruebas automatizadas unitarias, de integración y end-to-end.
@@ -172,4 +185,8 @@ estados vacíos hasta que el usuario los configure.
   reciente.
 - Crear una categoría la incorpora a los formularios de movimientos.
 - Una categoría con movimientos asociados no puede eliminarse.
+- Cambiar de mes actualiza todos los indicadores y movimientos del período sin
+  recargar la página.
+- Cambiar el rango de días actualiza la consulta y no permite fechas fuera del
+  mes ni posteriores al día actual.
 - `npm run lint` y `npm run build` finalizan correctamente.

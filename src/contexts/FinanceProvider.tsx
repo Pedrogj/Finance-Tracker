@@ -14,6 +14,33 @@ import type {
   SavingsGoal,
 } from "@/types/finance";
 
+async function fetchAllTransactions() {
+  const pageSize = 1000;
+  const transactions: FinanceTransaction[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const result = await supabase
+      .from("transactions")
+      .select(
+        "id, account_id, category_id, transaction_type, amount, description, notes, transaction_date, created_at, category:categories(name, color, icon), account:accounts(name)",
+      )
+      .order("transaction_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+
+    if (result.error) {
+      return { data: null, error: result.error };
+    }
+
+    const page = (result.data ?? []) as unknown as FinanceTransaction[];
+    transactions.push(...page);
+
+    if (page.length < pageSize) {
+      return { data: transactions, error: null };
+    }
+  }
+}
+
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -54,14 +81,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
           .select("id, name, category_type, color, icon")
           .order("category_type")
           .order("name"),
-        supabase
-          .from("transactions")
-          .select(
-            "id, account_id, category_id, transaction_type, amount, description, notes, transaction_date, created_at, category:categories(name, color, icon), account:accounts(name)",
-          )
-          .order("transaction_date", { ascending: false })
-          .order("created_at", { ascending: false })
-          .limit(100),
+        fetchAllTransactions(),
         supabase
           .from("budgets")
           .select("id, category_id, month, amount")
@@ -89,9 +109,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
     setAccounts((accountsResult.data ?? []) as Account[]);
     setCategories((categoriesResult.data ?? []) as Category[]);
-    setTransactions(
-      (transactionsResult.data ?? []) as unknown as FinanceTransaction[],
-    );
+    setTransactions(transactionsResult.data ?? []);
     setBudgets((budgetsResult.data ?? []) as Budget[]);
     setGoals((goalsResult.data ?? []) as SavingsGoal[]);
     setIsLoading(false);

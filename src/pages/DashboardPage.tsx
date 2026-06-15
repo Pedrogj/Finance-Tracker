@@ -1,6 +1,9 @@
 import {
   ArrowDownRight,
   ArrowUpRight,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   CircleDollarSign,
   LogOut,
   Pencil,
@@ -11,12 +14,20 @@ import {
   Trash2,
   WalletCards,
 } from "lucide-react";
+import { es } from "date-fns/locale";
 import { useState } from "react";
+import type { DateRange } from "react-day-picker";
 
 import { DeleteTransactionDialog } from "@/components/DeleteTransactionDialog";
 import { CategoryManagerModal } from "@/components/CategoryManagerModal";
 import { TransactionModal } from "@/components/TransactionModal";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinance } from "@/hooks/useFinance";
 import type { FinanceTransaction } from "@/types/finance";
@@ -27,17 +38,56 @@ const currency = new Intl.NumberFormat("es-CL", {
   maximumFractionDigits: 0,
 });
 
-const currentDate = new Date();
-const currentMonthKey = currentDate.toISOString().slice(0, 7);
-const currentMonthStart = `${currentMonthKey}-01`;
-const currentMonthLabel = new Intl.DateTimeFormat("es-CL", {
+const monthFormatter = new Intl.DateTimeFormat("es-CL", {
   month: "long",
   year: "numeric",
-}).format(currentDate);
+});
 const shortDate = new Intl.DateTimeFormat("es-CL", {
   day: "2-digit",
   month: "short",
 });
+
+function getMonthKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getMonthDate(monthKey: string) {
+  const [year, month] = monthKey.split("-").map(Number);
+  return new Date(year, month - 1, 1, 12);
+}
+
+function shiftMonth(monthKey: string, offset: number) {
+  const date = getMonthDate(monthKey);
+  date.setMonth(date.getMonth() + offset);
+  return getMonthKey(date);
+}
+
+const currentMonthKey = getMonthKey(new Date());
+const currentDay = new Date().getDate();
+
+function getLastAvailableDay(monthKey: string) {
+  if (monthKey === currentMonthKey) {
+    return currentDay;
+  }
+
+  const [year, month] = monthKey.split("-").map(Number);
+  return new Date(year, month, 0).getDate();
+}
+
+function getAvailableMonthRange(monthKey: string): DateRange {
+  const [year, month] = monthKey.split("-").map(Number);
+  return {
+    from: new Date(year, month - 1, 1, 12),
+    to: new Date(year, month - 1, getLastAvailableDay(monthKey), 12),
+  };
+}
+
+function formatDateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0",
+  )}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
 export function DashboardPage() {
   const { user, signOut } = useAuth();
@@ -45,6 +95,10 @@ export function DashboardPage() {
     useFinance();
   const [transactionModalOpen, setTransactionModalOpen] = useState(false);
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
+  const [selectedMonthKey, setSelectedMonthKey] = useState(currentMonthKey);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() =>
+    getAvailableMonthRange(currentMonthKey),
+  );
   const [editingTransaction, setEditingTransaction] =
     useState<FinanceTransaction | null>(null);
   const [deletingTransaction, setDeletingTransaction] =
@@ -52,13 +106,33 @@ export function DashboardPage() {
 
   if (!user) return null;
 
-  const monthTransactions = transactions.filter((transaction) =>
-    transaction.transaction_date.startsWith(currentMonthKey),
+  const periodLabel = monthFormatter.format(getMonthDate(selectedMonthKey));
+  const availableMonthKeys = [
+    currentMonthKey,
+    ...transactions.map((transaction) =>
+      transaction.transaction_date.slice(0, 7),
+    ),
+    ...budgets.map((budget) => budget.month.slice(0, 7)),
+  ].sort();
+  const earliestMonthKey = availableMonthKeys[0];
+  const isCurrentMonth = selectedMonthKey === currentMonthKey;
+  const canGoBack = selectedMonthKey > earliestMonthKey;
+  const canGoForward = selectedMonthKey < currentMonthKey;
+  const availableRange = getAvailableMonthRange(selectedMonthKey);
+  const startDate = dateRange?.from ?? availableRange.from!;
+  const endDate = dateRange?.to ?? dateRange?.from ?? availableRange.to!;
+  const startDateKey = formatDateKey(startDate);
+  const endDateKey = formatDateKey(endDate);
+
+  const periodTransactions = transactions.filter(
+    (transaction) =>
+      transaction.transaction_date >= startDateKey &&
+      transaction.transaction_date <= endDateKey,
   );
-  const monthlyIncome = monthTransactions
+  const periodIncome = periodTransactions
     .filter((transaction) => transaction.transaction_type === "income")
     .reduce((total, transaction) => total + Number(transaction.amount), 0);
-  const monthlyExpenses = monthTransactions
+  const periodExpenses = periodTransactions
     .filter((transaction) => transaction.transaction_type === "expense")
     .reduce((total, transaction) => total + Number(transaction.amount), 0);
   const balance =
@@ -66,20 +140,24 @@ export function DashboardPage() {
       (total, account) => total + Number(account.initial_balance),
       0,
     ) +
-    transactions.reduce(
+    transactions
+      .filter(
+        (transaction) => transaction.transaction_date <= endDateKey,
+      )
+      .reduce(
       (total, transaction) =>
         total +
         (transaction.transaction_type === "income"
           ? Number(transaction.amount)
           : -Number(transaction.amount)),
       0,
-    );
+      );
 
   const categoryTotals = new Map<
     number,
     { name: string; amount: number; color: string }
   >();
-  monthTransactions
+  periodTransactions
     .filter((transaction) => transaction.transaction_type === "expense")
     .forEach((transaction) => {
       const current = categoryTotals.get(transaction.category_id);
@@ -96,17 +174,17 @@ export function DashboardPage() {
     .map((category) => ({
       ...category,
       percentage:
-        monthlyExpenses > 0
-          ? Math.round((category.amount / monthlyExpenses) * 100)
+        periodExpenses > 0
+          ? Math.round((category.amount / periodExpenses) * 100)
           : 0,
     }));
 
   const totalBudget = budgets
-    .filter((budget) => budget.month === currentMonthStart)
+    .filter((budget) => budget.month.startsWith(selectedMonthKey))
     .reduce((total, budget) => total + Number(budget.amount), 0);
   const budgetPercentage =
     totalBudget > 0
-      ? Math.min(Math.round((monthlyExpenses / totalBudget) * 100), 100)
+      ? Math.min(Math.round((periodExpenses / totalBudget) * 100), 100)
       : 0;
   const highlightedGoal =
     goals.find((goal) => goal.status === "active") ?? goals[0];
@@ -127,6 +205,17 @@ export function DashboardPage() {
     .map((part) => part[0])
     .join("")
     .toUpperCase();
+
+  function changeMonth(offset: number) {
+    const nextMonth = shiftMonth(selectedMonthKey, offset);
+    setSelectedMonthKey(nextMonth);
+    setDateRange(getAvailableMonthRange(nextMonth));
+  }
+
+  const rangeLabel =
+    startDate.getDate() === endDate.getDate()
+      ? `Día ${startDate.getDate()}`
+      : `${startDate.getDate()} al ${endDate.getDate()} de ${periodLabel}`;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -162,7 +251,7 @@ export function DashboardPage() {
               Hola, {firstName}
             </h1>
             <p className="mt-2 text-sm capitalize text-slate-500">
-              Tu resumen de {currentMonthLabel}
+              Tu resumen financiero
             </p>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -189,6 +278,82 @@ export function DashboardPage() {
           </div>
         </div>
 
+        <section
+          aria-label="Seleccionar período"
+          className="mt-6 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
+        >
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => changeMonth(-1)}
+              disabled={!canGoBack}
+              className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Ver mes anterior"
+            >
+              <ChevronLeft className="size-5" aria-hidden="true" />
+            </button>
+            <div className="text-center">
+              <p className="text-sm font-semibold capitalize text-slate-900">
+                {periodLabel}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                {isCurrentMonth ? "Mes actual" : "Historial mensual"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => changeMonth(1)}
+              disabled={!canGoForward}
+              className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
+              aria-label="Ver mes siguiente"
+            >
+              <ChevronRight className="size-5" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="mt-2 border-t border-slate-100 px-2 pt-3">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full justify-start rounded-xl px-3 text-left font-normal sm:ml-auto sm:max-w-sm"
+                >
+                  <CalendarDays className="text-slate-500" aria-hidden="true" />
+                  <span className="truncate capitalize">{rangeLabel}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="center"
+                className="w-auto max-w-[calc(100vw-2rem)] p-2"
+              >
+                <Calendar
+                  mode="range"
+                  month={getMonthDate(selectedMonthKey)}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  locale={es}
+                  hideNavigation
+                  showOutsideDays={false}
+                  disabled={[
+                    { before: availableRange.from! },
+                    { after: availableRange.to! },
+                  ]}
+                  className="mx-auto"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setDateRange(availableRange)}
+                  className="w-full text-slate-600"
+                >
+                  Seleccionar mes completo
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </section>
+
         {error && (
           <p
             role="alert"
@@ -205,8 +370,10 @@ export function DashboardPage() {
           </div>
         ) : (
           <>
-            <section className="mt-7 overflow-hidden rounded-3xl bg-slate-950 p-6 text-white sm:p-8">
-              <p className="text-sm text-slate-400">Saldo total</p>
+            <section className="mt-5 overflow-hidden rounded-3xl bg-slate-950 p-6 text-white sm:p-8">
+              <p className="text-sm text-slate-400">
+                Saldo al día {endDate.getDate()}
+              </p>
               <p className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
                 {currency.format(balance)}
               </p>
@@ -218,10 +385,10 @@ export function DashboardPage() {
                       className="size-4 text-emerald-400"
                       aria-hidden="true"
                     />
-                    Ingresos del mes
+                    Ingresos del período
                   </p>
                   <p className="mt-2 text-lg font-semibold">
-                    {currency.format(monthlyIncome)}
+                    {currency.format(periodIncome)}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-white/5 p-4">
@@ -230,10 +397,10 @@ export function DashboardPage() {
                       className="size-4 text-amber-400"
                       aria-hidden="true"
                     />
-                    Gastos del mes
+                    Gastos del período
                   </p>
                   <p className="mt-2 text-lg font-semibold">
-                    {currency.format(monthlyExpenses)}
+                    {currency.format(periodExpenses)}
                   </p>
                 </div>
               </div>
@@ -242,11 +409,11 @@ export function DashboardPage() {
             <div className="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
               <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
                 <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-                  <h2 className="font-semibold">Movimientos recientes</h2>
+                  <h2 className="font-semibold">Movimientos del período</h2>
                 </div>
 
                 <div className="divide-y divide-slate-100">
-                  {transactions.slice(0, 6).map((transaction) => {
+                  {periodTransactions.slice(0, 6).map((transaction) => {
                     const positive = transaction.transaction_type === "income";
                     const TransactionIcon = positive
                       ? CircleDollarSign
@@ -319,14 +486,14 @@ export function DashboardPage() {
                     );
                   })}
 
-                  {transactions.length === 0 && (
+                  {periodTransactions.length === 0 && (
                     <div className="px-6 py-14 text-center">
                       <ReceiptText className="mx-auto size-8 text-slate-300" />
                       <p className="mt-3 text-sm font-medium">
-                        Aún no tienes movimientos
+                        No hay movimientos en este período
                       </p>
                       <p className="mt-1 text-xs text-slate-500">
-                        Registra un ingreso o gasto para comenzar.
+                        Puedes revisar otro mes o registrar un movimiento.
                       </p>
                     </div>
                   )}
@@ -376,7 +543,7 @@ export function DashboardPage() {
                       />
                     </div>
                     <p className="mt-3 text-xs text-slate-500">
-                      {currency.format(monthlyExpenses)} de{" "}
+                      {currency.format(periodExpenses)} de{" "}
                       {currency.format(totalBudget)}
                     </p>
                   </section>
