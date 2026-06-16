@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
 
 export const FinanceTrackerApp = () => {
@@ -33,6 +34,10 @@ export const FinanceTrackerApp = () => {
         <Route
           path="/"
           element={user ? <DashboardPage /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/profile"
+          element={user ? <ProfilePage /> : <Navigate to="/login" replace />}
         />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

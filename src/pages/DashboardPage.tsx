@@ -12,11 +12,13 @@ import {
   Tags,
   Target,
   Trash2,
+  UserRound,
   WalletCards,
 } from "lucide-react";
 import { es } from "date-fns/locale";
 import { useState } from "react";
 import type { DateRange } from "react-day-picker";
+import { Link } from "react-router";
 
 import { DeleteTransactionDialog } from "@/components/DeleteTransactionDialog";
 import { CategoryManagerModal } from "@/components/CategoryManagerModal";
@@ -229,9 +231,18 @@ export function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="grid size-9 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
-              {initials}
-            </span>
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+            >
+              <span className="grid size-9 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+                {initials}
+              </span>
+              <span className="hidden items-center gap-1 sm:flex">
+                <UserRound className="size-4" aria-hidden="true" />
+                Perfil
+              </span>
+            </Link>
             <button
               type="button"
               onClick={() => void signOut()}

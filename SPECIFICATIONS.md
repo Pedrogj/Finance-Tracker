@@ -100,6 +100,12 @@ Ruta protegida por el estado de sesión de Supabase. Sin sesión redirige a
 - Confirmación obligatoria antes de eliminar un movimiento.
 - Cierre de sesión con retorno a `/login`.
 
+### `/profile`
+
+Ruta protegida por sesión. Muestra la información básica de la cuenta actual:
+nombre, correo, avatar con iniciales, navegación de regreso al dashboard y
+cierre de sesión.
+
 Las rutas desconocidas redirigen a `/login`. Si ya existe una sesión, visitar
 login o registro redirige al dashboard.
 
@@ -177,6 +183,7 @@ hasta el día final del rango.
 - Los enlaces entre autenticación funcionan sin recargar la página.
 - La sesión persiste tras recargar la página.
 - Cerrar sesión revoca la sesión local y retorna al login.
+- El usuario autenticado puede abrir `/profile` y ver su nombre y correo.
 - Las rutas no reconocidas se controlan mediante redirección.
 - No existe desbordamiento horizontal en móvil, tablet o escritorio.
 - La interfaz utiliza español y muestra importes en CLP.
