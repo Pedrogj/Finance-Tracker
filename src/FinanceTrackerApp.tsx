@@ -2,9 +2,11 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { ProfilePage } from "@/pages/ProfilePage";
 import { RegisterPage } from "@/pages/RegisterPage";
+import { ResetPasswordPage } from "@/pages/ResetPasswordPage";
 
 export const FinanceTrackerApp = () => {
   const { user, isLoading } = useAuth();
@@ -31,6 +33,11 @@ export const FinanceTrackerApp = () => {
           path="/register"
           element={user ? <Navigate to="/" replace /> : <RegisterPage />}
         />
+        <Route
+          path="/forgot-password"
+          element={user ? <Navigate to="/" replace /> : <ForgotPasswordPage />}
+        />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/"
           element={user ? <DashboardPage /> : <Navigate to="/login" replace />}

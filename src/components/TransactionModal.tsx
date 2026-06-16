@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
+import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -34,11 +35,27 @@ type TransactionFormProps = {
 };
 
 const fieldClass =
-  "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-100";
+  "h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 aria-invalid:border-red-400 aria-invalid:focus:border-red-500 aria-invalid:focus:ring-red-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:placeholder:text-slate-500 dark:focus:ring-emerald-950 dark:aria-invalid:focus:ring-red-950";
+
+const clpFormatter = new Intl.NumberFormat("es-CL", {
+  style: "currency",
+  currency: "CLP",
+  maximumFractionDigits: 0,
+});
+
+function formatClpInput(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "";
+  return clpFormatter.format(value);
+}
+
+function parseClpInput(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
+}
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <p className="mt-1.5 text-xs text-red-600">{message}</p>;
+  return <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{message}</p>;
 }
 
 function TransactionForm({
@@ -52,6 +69,8 @@ function TransactionForm({
   const expenseCategories = categories.filter(
     (category) => category.category_type === "expense",
   );
+  const initialAmount = transaction ? Number(transaction.amount) : 0;
+  const [amountInput, setAmountInput] = useState(formatClpInput(initialAmount));
   const {
     register,
     control,
@@ -67,7 +86,7 @@ function TransactionForm({
       categoryId: String(
         transaction?.category_id ?? expenseCategories[0]?.id ?? "",
       ),
-      amount: transaction ? Number(transaction.amount) : 0,
+      amount: initialAmount,
       description: transaction?.description ?? "",
       date:
         transaction?.transaction_date ??
@@ -108,13 +127,13 @@ function TransactionForm({
       role="dialog"
       aria-modal="true"
       aria-labelledby="transaction-title"
-      className="max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
+      className="max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-5 text-slate-950 shadow-2xl transition-colors sm:p-6 dark:bg-slate-900 dark:text-slate-50"
     >
       <div className="flex items-start justify-between">
         <div>
           <h2
             id="transaction-title"
-            className="text-xl font-semibold text-slate-950"
+            className="text-xl font-semibold text-slate-950 dark:text-slate-50"
           >
             {transaction ? "Editar movimiento" : "Registrar movimiento"}
           </h2>
@@ -122,7 +141,7 @@ function TransactionForm({
         <button
           type="button"
           onClick={onClose}
-          className="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100"
+          className="grid size-9 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
           aria-label="Cerrar formulario"
         >
           <X className="size-5" />
@@ -131,7 +150,7 @@ function TransactionForm({
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <input type="hidden" {...register("type")} />
-        <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+        <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
           {(["expense", "income"] as const).map((option) => (
             <button
               key={option}
@@ -145,10 +164,10 @@ function TransactionForm({
                   shouldValidate: true,
                 });
               }}
-              className={`h-9 rounded-lg text-sm font-medium transition ${
-                type === option
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-500"
+                className={`h-9 rounded-lg text-sm font-medium transition ${
+                  type === option
+                  ? "bg-emerald-600 text-white shadow-sm shadow-emerald-900/10 hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
+                  : "text-slate-500 dark:text-slate-400"
               }`}
             >
               {option === "expense" ? "Gasto" : "Ingreso"}
@@ -156,7 +175,7 @@ function TransactionForm({
           ))}
         </div>
 
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
           Descripción
           <input
             className={`${fieldClass} mt-2`}
@@ -169,21 +188,27 @@ function TransactionForm({
         </label>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
             Monto
             <input
               className={`${fieldClass} mt-2`}
-              type="number"
-              inputMode="decimal"
-              min="1"
-              step="1"
-              placeholder="$ 0"
+              type="text"
+              inputMode="numeric"
+              placeholder="$0"
+              value={amountInput}
+              onChange={(event) => {
+                const amount = parseClpInput(event.target.value);
+                setAmountInput(formatClpInput(amount));
+                setValue("amount", amount, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+              }}
               aria-invalid={Boolean(errors.amount)}
-              {...register("amount", { valueAsNumber: true })}
             />
             <FieldError message={errors.amount?.message} />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
             Fecha
             <input
               className={`${fieldClass} mt-2`}
@@ -198,7 +223,7 @@ function TransactionForm({
         {accounts.length === 1 ? (
           <input type="hidden" {...register("accountId")} />
         ) : (
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
             Cuenta
             <select
               className={`${fieldClass} mt-2`}
@@ -215,7 +240,7 @@ function TransactionForm({
           </label>
         )}
 
-        <label className="block text-sm font-medium text-slate-700">
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
           Categoría
           <select
             className={`${fieldClass} mt-2`}
@@ -236,7 +261,7 @@ function TransactionForm({
         {errors.root?.server?.message && (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+            className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300"
           >
             {errors.root.server.message}
           </p>
@@ -247,7 +272,7 @@ function TransactionForm({
             type="submit"
             size="lg"
             disabled={isSubmitting || accounts.length === 0}
-            className="w-full bg-emerald-600 hover:bg-emerald-700"
+            className="w-full bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
           >
             {isSubmitting
               ? "Guardando..."
@@ -273,7 +298,7 @@ export function TransactionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4 backdrop-blur-sm dark:bg-slate-950/75"
       role="presentation"
     >
       <TransactionForm

@@ -118,7 +118,7 @@ export function RegisterPage() {
 
         <p className="text-xs leading-5 text-slate-500">
           Al crear una cuenta aceptas los términos de uso y la política de
-          privacidad de Finance Tracker.
+          privacidad de MoneyFlow.
         </p>
 
         {errors.root?.server?.message && (
@@ -143,7 +143,7 @@ export function RegisterPage() {
           type="submit"
           size="lg"
           disabled={isSubmitting}
-          className="h-11 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700"
+          className="h-11 w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
         >
           {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
           <ArrowRight data-icon="inline-end" />

@@ -15,12 +15,15 @@ export type SignUpResult = {
 export type AuthContextValue = {
   user: AuthUser | null;
   isLoading: boolean;
+  isPasswordRecovery: boolean;
   signIn: (email: string, password: string) => Promise<AuthError | null>;
   signUp: (
     name: string,
     email: string,
     password: string,
   ) => Promise<SignUpResult>;
+  requestPasswordReset: (email: string) => Promise<AuthError | null>;
+  updatePassword: (password: string) => Promise<AuthError | null>;
   signOut: () => Promise<AuthError | null>;
 };
 

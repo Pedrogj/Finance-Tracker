@@ -14,6 +14,16 @@ export const loginSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Ingresa tu correo electrónico.")
+    .email("Ingresa un correo electrónico válido."),
+});
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
 export const registerSchema = z
   .object({
     name: z
@@ -38,3 +48,18 @@ export const registerSchema = z
   });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, "Crea una nueva contraseña.")
+      .min(6, "La contraseña debe tener al menos 6 caracteres."),
+    confirmation: z.string().min(1, "Confirma tu nueva contraseña."),
+  })
+  .refine((values) => values.password === values.confirmation, {
+    message: "Las contraseñas no coinciden.",
+    path: ["confirmation"],
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;

@@ -220,20 +220,20 @@ export function DashboardPage() {
       : `${startDate.getDate()} al ${endDate.getDate()} de ${periodLabel}`;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-screen bg-slate-50 text-slate-950 transition-colors dark:bg-slate-950 dark:text-slate-50">
+      <header className="border-b border-slate-200 bg-white transition-colors dark:border-slate-800 dark:bg-slate-900">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <span className="grid size-9 place-items-center rounded-xl bg-emerald-600 text-white">
               <WalletCards className="size-5" aria-hidden="true" />
             </span>
-            <span className="font-semibold tracking-tight">Finance Tracker</span>
+            <span className="font-semibold tracking-tight">MoneyFlow</span>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
               to="/profile"
-              className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+              className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50"
             >
               <span className="grid size-9 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
                 {initials}
@@ -246,7 +246,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => void signOut()}
-              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
             >
               <LogOut className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Salir</span>
@@ -261,7 +261,7 @@ export function DashboardPage() {
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Hola, {firstName}
             </h1>
-            <p className="mt-2 text-sm capitalize text-slate-500">
+            <p className="mt-2 text-sm capitalize text-slate-500 dark:text-slate-400">
               Tu resumen financiero
             </p>
           </div>
@@ -281,7 +281,7 @@ export function DashboardPage() {
                 setEditingTransaction(null);
                 setTransactionModalOpen(true);
               }}
-              className="h-11 rounded-xl bg-emerald-600 px-4 hover:bg-emerald-700"
+              className="h-11 rounded-xl bg-emerald-600 px-4 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
             >
               <Plus data-icon="inline-start" />
               Registrar movimiento
@@ -291,23 +291,23 @@ export function DashboardPage() {
 
         <section
           aria-label="Seleccionar período"
-          className="mt-6 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
+          className="mt-6 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900"
         >
           <div className="flex items-center justify-between">
             <button
               type="button"
               onClick={() => changeMonth(-1)}
               disabled={!canGoBack}
-              className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
+              className="grid size-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
               aria-label="Ver mes anterior"
             >
               <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
             <div className="text-center">
-              <p className="text-sm font-semibold capitalize text-slate-900">
+              <p className="text-sm font-semibold capitalize text-slate-900 dark:text-slate-50">
                 {periodLabel}
               </p>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                 {isCurrentMonth ? "Mes actual" : "Historial mensual"}
               </p>
             </div>
@@ -315,14 +315,14 @@ export function DashboardPage() {
               type="button"
               onClick={() => changeMonth(1)}
               disabled={!canGoForward}
-              className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30"
+              className="grid size-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
               aria-label="Ver mes siguiente"
             >
               <ChevronRight className="size-5" aria-hidden="true" />
             </button>
           </div>
 
-          <div className="mt-2 border-t border-slate-100 px-2 pt-3">
+          <div className="mt-2 border-t border-slate-100 px-2 pt-3 dark:border-slate-800">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -330,7 +330,7 @@ export function DashboardPage() {
                   variant="outline"
                   className="h-10 w-full justify-start rounded-xl px-3 text-left font-normal sm:ml-auto sm:max-w-sm"
                 >
-                  <CalendarDays className="text-slate-500" aria-hidden="true" />
+                  <CalendarDays className="text-slate-500 dark:text-slate-400" aria-hidden="true" />
                   <span className="truncate capitalize">{rangeLabel}</span>
                 </Button>
               </PopoverTrigger>
@@ -375,9 +375,9 @@ export function DashboardPage() {
         )}
 
         {isLoading && transactions.length === 0 ? (
-          <div className="mt-8 grid place-items-center rounded-2xl border border-slate-200 bg-white py-16">
+          <div className="mt-8 grid place-items-center rounded-2xl border border-slate-200 bg-white py-16 transition-colors dark:border-slate-800 dark:bg-slate-900">
             <span className="size-8 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600" />
-            <p className="mt-3 text-sm text-slate-500">Cargando tus finanzas...</p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Cargando tus finanzas...</p>
           </div>
         ) : (
           <>
@@ -418,12 +418,12 @@ export function DashboardPage() {
             </section>
 
             <div className="mt-5 grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
-              <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
+              <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition-colors dark:border-slate-800 dark:bg-slate-900">
+                <div className="border-b border-slate-100 px-5 py-4 sm:px-6 dark:border-slate-800">
                   <h2 className="font-semibold">Movimientos del período</h2>
                 </div>
 
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {periodTransactions.slice(0, 6).map((transaction) => {
                     const positive = transaction.transaction_type === "income";
                     const TransactionIcon = positive
@@ -439,7 +439,7 @@ export function DashboardPage() {
                           className={`grid size-10 shrink-0 place-items-center rounded-xl ${
                             positive
                               ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-700"
+                              : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
                           }`}
                         >
                           <TransactionIcon
@@ -451,7 +451,7 @@ export function DashboardPage() {
                           <p className="truncate text-sm font-medium">
                             {transaction.description}
                           </p>
-                          <p className="mt-1 truncate text-xs text-slate-500">
+                          <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
                             {transaction.category?.name ?? "Sin categoría"} ·{" "}
                             {shortDate.format(
                               new Date(
@@ -463,7 +463,7 @@ export function DashboardPage() {
                         <div className="flex shrink-0 flex-col items-end gap-1">
                           <p
                             className={`whitespace-nowrap text-sm font-semibold ${
-                              positive ? "text-emerald-700" : "text-slate-900"
+                              positive ? "text-emerald-700 dark:text-emerald-400" : "text-slate-900 dark:text-slate-100"
                             }`}
                           >
                             {positive ? "+" : "-"}
@@ -476,7 +476,7 @@ export function DashboardPage() {
                                 setEditingTransaction(transaction);
                                 setTransactionModalOpen(true);
                               }}
-                              className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                              className="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                               aria-label={`Editar ${transaction.description}`}
                             >
                               <Pencil className="size-4" aria-hidden="true" />
@@ -486,7 +486,7 @@ export function DashboardPage() {
                               onClick={() =>
                                 setDeletingTransaction(transaction)
                               }
-                              className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600"
+                              className="grid size-8 place-items-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                               aria-label={`Eliminar ${transaction.description}`}
                             >
                               <Trash2 className="size-4" aria-hidden="true" />
@@ -503,7 +503,7 @@ export function DashboardPage() {
                       <p className="mt-3 text-sm font-medium">
                         No hay movimientos en este período
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         Puedes revisar otro mes o registrar un movimiento.
                       </p>
                     </div>
@@ -513,20 +513,20 @@ export function DashboardPage() {
 
               <div className="space-y-5">
                 {categorySpending.length > 0 && (
-                  <section className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <section className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900">
                     <h2 className="font-semibold">En qué gastaste</h2>
                     <div className="mt-5 space-y-4">
                       {categorySpending.map((category) => (
                         <div key={category.name}>
                           <div className="flex items-center justify-between text-xs">
-                            <span className="font-medium text-slate-700">
+                            <span className="font-medium text-slate-700 dark:text-slate-200">
                               {category.name}
                             </span>
-                            <span className="text-slate-500">
+                            <span className="text-slate-500 dark:text-slate-400">
                               {currency.format(category.amount)}
                             </span>
                           </div>
-                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                             <div
                               className="h-full rounded-full"
                               style={{
@@ -542,18 +542,18 @@ export function DashboardPage() {
                 )}
 
                 {totalBudget > 0 && (
-                  <section className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <section className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex justify-between text-sm">
                       <h2 className="font-semibold">Presupuesto</h2>
-                      <span className="text-slate-500">{budgetPercentage}%</span>
+                      <span className="text-slate-500 dark:text-slate-400">{budgetPercentage}%</span>
                     </div>
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                       <div
                         className="h-full rounded-full bg-emerald-500"
                         style={{ width: `${budgetPercentage}%` }}
                       />
                     </div>
-                    <p className="mt-3 text-xs text-slate-500">
+                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                       {currency.format(periodExpenses)} de{" "}
                       {currency.format(totalBudget)}
                     </p>
@@ -561,7 +561,7 @@ export function DashboardPage() {
                 )}
 
                 {highlightedGoal && (
-                  <section className="rounded-2xl border border-slate-200 bg-white p-5">
+                  <section className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center gap-3">
                       <span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700">
                         <Target className="size-5" aria-hidden="true" />
@@ -570,7 +570,7 @@ export function DashboardPage() {
                         <h2 className="text-sm font-semibold">
                           {highlightedGoal.name}
                         </h2>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                           {goalPercentage}% completado
                         </p>
                       </div>

@@ -100,12 +100,12 @@ export function LoginPage() {
             </button>
           </div>
           <div className="mt-2 text-right">
-            <button
-              type="button"
+            <Link
+              to="/forgot-password"
               className="text-xs font-medium text-emerald-700 hover:text-emerald-800"
             >
               ¿Olvidaste tu contraseña?
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export function LoginPage() {
           type="submit"
           size="lg"
           disabled={isSubmitting}
-          className="h-11 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700"
+          className="h-11 w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500"
         >
           {isSubmitting ? "Ingresando..." : "Ingresar"}
           <ArrowRight data-icon="inline-end" />

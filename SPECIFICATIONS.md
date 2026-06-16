@@ -1,8 +1,8 @@
-# Finance Tracker - Especificación inicial
+# MoneyFlow - Especificación inicial
 
 ## 1. Objetivo
 
-Finance Tracker es una aplicación web de gestión de finanzas personales. Su
+MoneyFlow es una aplicación web de gestión de finanzas personales. Su
 objetivo es ayudar a una persona a entender sus ingresos, gastos, presupuesto y
 metas de ahorro desde una interfaz clara y accesible.
 
@@ -18,6 +18,7 @@ mensual sin enfrentarse a herramientas contables complejas.
 Incluye en esta etapa:
 
 - Inicio de sesión y registro mediante Supabase Auth.
+- Recuperación de contraseña mediante correo de Supabase Auth.
 - Sesión persistente administrada por Supabase en el navegador.
 - Confirmación de correo electrónico según la configuración del proyecto.
 - Perfil privado creado automáticamente al registrar un usuario.
@@ -26,11 +27,12 @@ Incluye en esta etapa:
 - Creación y eliminación de categorías personales de ingreso y gasto.
 - Navegación mensual para consultar el historial financiero.
 - Filtro por rango de días dentro del mes seleccionado.
+- Preferencia visual de tema claro u oscuro desde el perfil.
 - Navegación visual hacia futuras áreas de movimientos, presupuestos y metas.
 - Formato de moneda CLP, textos en español y fechas con contexto local.
 
-No incluye recuperación de contraseña, edición de perfil, transferencias entre
-cuentas ni recurrencia automática de movimientos.
+No incluye edición de perfil, transferencias entre cuentas ni recurrencia
+automática de movimientos.
 
 ## 3. Stack y estructura
 
@@ -39,6 +41,7 @@ cuentas ni recurrencia automática de movimientos.
 - React Router para las rutas del cliente.
 - Supabase Auth y PostgreSQL para autenticación y perfil.
 - React Context API para centralizar el estado y las operaciones de autenticación.
+- React Context API también administra la preferencia visual de tema.
 - React Hook Form para estado, envío y errores de formularios.
 - Zod como fuente única de validación y tipos de entrada.
 - Tailwind CSS 4 para estilos responsive.
@@ -47,9 +50,12 @@ cuentas ni recurrencia automática de movimientos.
 - Fuente Geist Variable.
 
 `AuthProvider` mantiene el usuario y la carga inicial, escucha los cambios de
-sesión de Supabase y expone `signIn`, `signUp` y `signOut` mediante `useAuth`.
+sesión de Supabase y expone `signIn`, `signUp`, `requestPasswordReset`,
+`updatePassword` y `signOut` mediante `useAuth`.
 `FinanceProvider` carga y administra cuentas, categorías, movimientos,
 presupuestos y metas mediante `useFinance`.
+`ThemeProvider` aplica `light` o `dark` al documento, respeta la preferencia
+guardada en el navegador y expone `toggleTheme` mediante `useTheme`.
 `FinanceTrackerApp` consume ese contexto y se limita a controlar las rutas.
 Las páginas residen en `src/pages`; los elementos compartidos y componentes UI
 residen en `src/components`.
@@ -64,6 +70,8 @@ residen en `src/components`.
 - Slate para superficies, tipografía y navegación.
 - Tarjetas blancas, bordes suaves, radios amplios y sombras discretas.
 - La interfaz debe conservar contraste suficiente y estados de foco visibles.
+- El tema oscuro usa la clase `dark` en el documento y debe mantener contraste
+  suficiente en navegación, tarjetas, formularios y perfil.
 - Navegación superior mínima con identidad, usuario y cierre de sesión.
 - Tablet y móvil: contenido apilado y acción principal a ancho completo.
 
@@ -72,7 +80,8 @@ residen en `src/components`.
 ### `/login`
 
 Contiene correo, contraseña, control para mostrar u ocultar la contraseña y
-enlace hacia registro. El envío válido autentica con Supabase y navega a `/`.
+enlaces hacia registro y recuperación de contraseña. El envío válido autentica
+con Supabase y navega a `/`.
 
 ### `/register`
 
@@ -80,6 +89,20 @@ Contiene nombre completo, correo, contraseña y confirmación. El envío válido
 crea un usuario en Supabase, guarda el nombre en sus metadatos y genera su
 perfil. Si la confirmación de correo está activa, informa al usuario que debe
 revisar su bandeja; si Supabase entrega una sesión inmediata, navega a `/`.
+
+### `/forgot-password`
+
+Solicita el correo del usuario y envía un enlace seguro con
+`resetPasswordForEmail`. El mensaje de éxito no confirma si el correo existe,
+para evitar enumeración de cuentas. El enlace de Supabase debe redirigir a
+`/reset-password`.
+
+### `/reset-password`
+
+Recibe la sesión temporal generada por el enlace de recuperación. Permite
+ingresar una nueva contraseña, confirmar que coincide y actualizarla con
+`updateUser`. Al completar el cambio, cierra la sesión temporal y vuelve al
+flujo de inicio de sesión.
 
 ### `/`
 
@@ -104,7 +127,8 @@ Ruta protegida por el estado de sesión de Supabase. Sin sesión redirige a
 
 Ruta protegida por sesión. Muestra la información básica de la cuenta actual:
 nombre, correo, avatar con iniciales, navegación de regreso al dashboard y
-cierre de sesión.
+cierre de sesión. Incluye una preferencia para alternar entre tema claro y tema
+oscuro, persistida en `localStorage`.
 
 Las rutas desconocidas redirigen a `/login`. Si ya existe una sesión, visitar
 login o registro redirige al dashboard.
@@ -116,7 +140,8 @@ login o registro redirige al dashboard.
 - Todos los campos de los formularios son obligatorios.
 - El correo debe tener un formato válido.
 - La contraseña debe tener al menos seis caracteres.
-- En registro, la confirmación debe coincidir con la contraseña.
+- En registro y restablecimiento, la confirmación debe coincidir con la
+  contraseña.
 - Los errores aparecen junto al campo y se relacionan mediante atributos ARIA.
 - Los errores de Supabase se presentan mediante mensajes en español sin exponer
   detalles internos.
@@ -131,6 +156,13 @@ login o registro redirige al dashboard.
 - Un trigger crea el perfil con `full_name` después del registro.
 - RLS permite a cada usuario autenticado consultar y actualizar solo su perfil.
 - La sesión se restaura al recargar y se actualiza con `onAuthStateChange`.
+- La recuperación de contraseña usa `resetPasswordForEmail` con `redirectTo`
+  hacia `/reset-password`; esa URL debe estar permitida en la configuración de
+  Redirect URLs de Supabase Auth.
+- El contexto de autenticación conserva el evento `PASSWORD_RECOVERY` para
+  distinguir un enlace válido de una visita manual a `/reset-password`.
+- El cambio de contraseña se ejecuta solo con una sesión de recuperación válida
+  y usa `updateUser({ password })`.
 - Las páginas no acceden directamente al cliente Supabase ni reciben la sesión
   por props; consumen el estado compartido mediante `useAuth`.
 
@@ -165,7 +197,6 @@ hasta el día final del rango.
 
 ## 9. Evolución futura
 
-- Recuperación y cambio de contraseña.
 - Gestión visual de cuentas y edición de categorías.
 - CRUD completo de presupuestos y metas.
 - Transferencias entre cuentas y movimientos recurrentes.
@@ -181,9 +212,15 @@ hasta el día final del rango.
 - Campos vacíos, correo inválido, contraseña corta y confirmación diferente
   muestran mensajes claros.
 - Los enlaces entre autenticación funcionan sin recargar la página.
+- Solicitar recuperación de contraseña envía el correo y muestra una respuesta
+  neutral.
+- Un enlace válido de recuperación permite definir una nueva contraseña.
+- Un enlace inválido o expirado ofrece solicitar un nuevo correo.
 - La sesión persiste tras recargar la página.
 - Cerrar sesión revoca la sesión local y retorna al login.
 - El usuario autenticado puede abrir `/profile` y ver su nombre y correo.
+- El usuario autenticado puede cambiar entre tema claro y oscuro desde
+  `/profile`; la preferencia se mantiene al recargar.
 - Las rutas no reconocidas se controlan mediante redirección.
 - No existe desbordamiento horizontal en móvil, tablet o escritorio.
 - La interfaz utiliza español y muestra importes en CLP.
