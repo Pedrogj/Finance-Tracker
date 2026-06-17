@@ -384,7 +384,7 @@ export function DashboardPage() {
           </div>
         ) : (
           <>
-            <section className="mt-5 overflow-hidden rounded-3xl bg-slate-950 p-6 text-white sm:p-8">
+            <section className="mt-5 overflow-hidden rounded-3xl bg-slate-900 p-6 text-white sm:p-8">
               <p className="text-sm text-slate-400">
                 Saldo al día {endDate.getDate()}
               </p>
