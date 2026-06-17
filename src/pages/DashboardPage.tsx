@@ -143,16 +143,14 @@ export function DashboardPage() {
       0,
     ) +
     transactions
-      .filter(
-        (transaction) => transaction.transaction_date <= endDateKey,
-      )
+      .filter((transaction) => transaction.transaction_date <= endDateKey)
       .reduce(
-      (total, transaction) =>
-        total +
-        (transaction.transaction_type === "income"
-          ? Number(transaction.amount)
-          : -Number(transaction.amount)),
-      0,
+        (total, transaction) =>
+          total +
+          (transaction.transaction_type === "income"
+            ? Number(transaction.amount)
+            : -Number(transaction.amount)),
+        0,
       );
 
   const categoryTotals = new Map<
@@ -235,7 +233,7 @@ export function DashboardPage() {
               to="/profile"
               className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50"
             >
-              <span className="grid size-9 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white">
+              <span className="grid size-9 place-items-center rounded-full bg-slate-900 text-xs font-semibold text-white ring-2 ring-transparent transition dark:bg-emerald-600 dark:text-white dark:ring-emerald-300/25">
                 {initials}
               </span>
               <span className="hidden items-center gap-1 sm:flex">
@@ -246,7 +244,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => void signOut()}
-            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-50"
             >
               <LogOut className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Salir</span>
@@ -330,7 +328,10 @@ export function DashboardPage() {
                   variant="outline"
                   className="h-10 w-full justify-start rounded-xl px-3 text-left font-normal sm:ml-auto sm:max-w-sm"
                 >
-                  <CalendarDays className="text-slate-500 dark:text-slate-400" aria-hidden="true" />
+                  <CalendarDays
+                    className="text-slate-500 dark:text-slate-400"
+                    aria-hidden="true"
+                  />
                   <span className="truncate capitalize">{rangeLabel}</span>
                 </Button>
               </PopoverTrigger>
@@ -377,7 +378,9 @@ export function DashboardPage() {
         {isLoading && transactions.length === 0 ? (
           <div className="mt-8 grid place-items-center rounded-2xl border border-slate-200 bg-white py-16 transition-colors dark:border-slate-800 dark:bg-slate-900">
             <span className="size-8 animate-spin rounded-full border-4 border-emerald-100 border-t-emerald-600" />
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Cargando tus finanzas...</p>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              Cargando tus finanzas...
+            </p>
           </div>
         ) : (
           <>
@@ -463,7 +466,9 @@ export function DashboardPage() {
                         <div className="flex shrink-0 flex-col items-end gap-1">
                           <p
                             className={`whitespace-nowrap text-sm font-semibold ${
-                              positive ? "text-emerald-700 dark:text-emerald-400" : "text-slate-900 dark:text-slate-100"
+                              positive
+                                ? "text-emerald-700 dark:text-emerald-400"
+                                : "text-slate-900 dark:text-slate-100"
                             }`}
                           >
                             {positive ? "+" : "-"}
@@ -545,7 +550,9 @@ export function DashboardPage() {
                   <section className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex justify-between text-sm">
                       <h2 className="font-semibold">Presupuesto</h2>
-                      <span className="text-slate-500 dark:text-slate-400">{budgetPercentage}%</span>
+                      <span className="text-slate-500 dark:text-slate-400">
+                        {budgetPercentage}%
+                      </span>
                     </div>
                     <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                       <div
